@@ -17,17 +17,24 @@ func (u AddUseCase) Done(in Input, out Output, tracker *Tracker) {
 	out.Out("введите имя:")
 	name := in.Get()
 	id := uuid.New().String()
-	tracker.AddItem(Item{id, name})
+	item, err := tracker.AddItem(Item{id, name})
+	if err != nil {
+		out.Out(fmt.Sprintf("элемент с id = %s уже существует", id))
+		return
+	}
+
+	out.Out(fmt.Sprintf("новый элемент добавлен: %s", item.toString()))
 }
 
 type GetUseCase struct{}
 
 func (u GetUseCase) Done(_ Input, out Output, tracker *Tracker) {
-	if len(tracker.Items) == 0 {
+	if len(tracker.items) == 0 {
 		out.Out("элементы не найдены")
+		return
 	}
 
-	for _, item := range tracker.Items {
+	for _, item := range tracker.items {
 		out.Out(item.toString())
 	}
 }
@@ -37,16 +44,14 @@ type DeleteUseCase struct{}
 func (u DeleteUseCase) Done(in Input, out Output, tracker *Tracker) {
 	out.Out("введите id для удаления:")
 	id := in.Get()
-	index := tracker.FindIndexById(id)
+	err := tracker.DeleteItem(id)
 
-	if index == -1 {
+	if err != nil {
 		out.Out("элемент не найден")
 		return
 	}
 
-	deleted := tracker.Items[index]
-	tracker.Items = append(tracker.Items[:index], tracker.Items[index+1:]...)
-	out.Out(fmt.Sprintf("удален элемент: %s", deleted.toString()))
+	out.Out(fmt.Sprintf("удален элемент c id: %s", id))
 }
 
 type FindUseCase struct{}
@@ -56,7 +61,7 @@ func (u FindUseCase) Done(in Input, out Output, tracker *Tracker) {
 	name := strings.ToLower(in.Get())
 	found := false
 
-	for _, item := range tracker.Items {
+	for _, item := range tracker.items {
 		if strings.Contains(strings.ToLower(item.Name), name) {
 			out.Out(fmt.Sprintf("найден элемент: %s", item.toString()))
 			found = true
@@ -73,14 +78,17 @@ type UpdateUseCase struct{}
 func (u UpdateUseCase) Done(in Input, out Output, tracker *Tracker) {
 	out.Out("введите id для обновления:")
 	id := in.Get()
-	index := tracker.FindIndexById(id)
 
-	if index == -1 {
+	out.Out("введите новое название:")
+	newName := in.Get()
+
+	updatedItem := Item{id, newName}
+	err := tracker.UpdateItem(updatedItem)
+
+	if err != nil {
 		out.Out("элемент не найден")
 		return
 	}
 
-	out.Out("введите новое название:")
-	tracker.Items[index].Name = in.Get()
-	out.Out(fmt.Sprintf("элемент обновлен: %s", tracker.Items[index].toString()))
+	out.Out(fmt.Sprintf("элемент обновлен: %s", updatedItem.toString()))
 }

@@ -14,27 +14,55 @@ func (i Item) toString() string {
 }
 
 type Tracker struct {
-	Items []Item
+	items []Item
 }
 
 func NewTracker() *Tracker {
 	return &Tracker{}
 }
 
-func (t *Tracker) AddItem(item Item) {
-	t.Items = append(t.Items, item)
+func (t *Tracker) AddItem(item Item) (Item, error) {
+	_, ok := t.indexOf(item.ID)
+	if ok {
+		return item, ErrItemAlreadyExists
+	}
+
+	t.items = append(t.items, item)
+
+	return item, nil
 }
 
 func (t *Tracker) GetItems() []Item {
-	return t.Items
+	return append([]Item(nil), t.items...)
 }
 
-func (t *Tracker) FindIndexById(id string) int {
-	for i, item := range t.Items {
+func (t *Tracker) indexOf(id string) (int, bool) {
+	for i, item := range t.items {
 		if item.ID == id {
-			return i
+			return i, true
 		}
 	}
 
-	return -1
+	return -1, false
+}
+
+func (t *Tracker) UpdateItem(item Item) error {
+	index, ok := t.indexOf(item.ID)
+	if !ok {
+		return ErrNotFound
+	}
+
+	t.items[index] = item
+	return nil
+}
+
+func (t *Tracker) DeleteItem(id string) error {
+	index, ok := t.indexOf(id)
+
+	if !ok {
+		return ErrNotFound
+	}
+
+	t.items = append(t.items[:index], t.items[index+1:]...)
+	return nil
 }
