@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"job4j.ru/go-lang-base/internal/tracker"
+)
 
 func main() {
-	fmt.Println("Hello World")
+	ui := tracker.UI{
+		In:      tracker.ConsoleInput{},
+		Out:     tracker.ConsoleOutput{},
+		Tracker: tracker.NewTracker(),
+	}
+	ui.Run()
 }
