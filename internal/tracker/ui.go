@@ -1,12 +1,14 @@
 package tracker
 
+import "context"
+
 type UI struct {
-	In      Input
-	Out     Output
-	Tracker *Tracker
+	In    Input
+	Out   Output
+	Store Store
 }
 
-func (u UI) Run() {
+func (u UI) Run(ctx context.Context) error {
 	actions := map[string]UseCase{
 		"add":    AddUseCase{},
 		"get":    GetUseCase{},
@@ -16,12 +18,9 @@ func (u UI) Run() {
 	}
 
 	for {
-		u.Out.Out("введите действие:")
-		for action := range actions {
-			u.Out.Out(action)
-		}
-
+		u.Out.Out("введите действие (add, get, delete, find, update, exit):")
 		selected := u.In.Get()
+
 		if selected == "exit" {
 			break
 		}
@@ -32,6 +31,10 @@ func (u UI) Run() {
 			continue
 		}
 
-		action.Done(u.In, u.Out, u.Tracker)
+		if err := action.Done(ctx, u.In, u.Out, u.Store); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
