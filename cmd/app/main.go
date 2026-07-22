@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"job4j.ru/go-lang-base/internal/api"
+	"job4j.ru/go-lang-base/internal/base"
 	"job4j.ru/go-lang-base/internal/config"
 	"job4j.ru/go-lang-base/internal/db"
 	"job4j.ru/go-lang-base/internal/repository"
 )
 
-func main() {
+func mainServer() {
 	ctx := context.Background()
 
 	cfg := db.Config{
@@ -39,5 +41,16 @@ func main() {
 	err = app.Listen(":9090")
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func main() {
+	cache := base.NewLruCache(3)
+
+	cache.Put("hello", "world")
+	res := cache.Get("hello")
+
+	if res != nil {
+		fmt.Println(*res)
 	}
 }
